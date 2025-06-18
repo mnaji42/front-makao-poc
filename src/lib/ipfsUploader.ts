@@ -78,7 +78,7 @@ export async function uploadMarketMetadata(
   const metadataFile = new File([metadataBlob], "metadata.json")
 
   const metadataCID = await uploadToIPFS(metadataFile)
-  announceCidToNetwork(metadataCID)
+  // announceCidToNetwork(metadataCID)
   return metadataCID
 }
 
