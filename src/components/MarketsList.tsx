@@ -11,6 +11,9 @@ interface Market {
   blockTimestamp: Date
   transactionHash: string
   title?: string
+  description?: string
+  image?: string
+  events?: { title: string; description: string }[]
   stakeToken?: string
   engagementDeadline?: Date
   resolutionDeadline?: Date
@@ -152,6 +155,42 @@ export function MarketsList() {
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                       {market.predictionCount || 2} options
                     </span>
+                  </div>
+
+                  {market.image && (
+                    <div className="mb-4">
+                      <img
+                        src={market.image}
+                        alt={market.title || "Market Image"}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
+
+                  {market.description && (
+                    <div className="mb-4">
+                      <p className="text-gray-300 text-sm">
+                        {market.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {market.events && market.events.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-md font-semibold text-gray-200 mb-2">
+                        Événements:
+                      </h4>
+                      <ul className="list-disc list-inside text-gray-300 text-sm">
+                        {market.events.map((event, index) => (
+                          <li key={index}>
+                            <strong>{event.title}:</strong> {event.description}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

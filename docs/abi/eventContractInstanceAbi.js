@@ -37,6 +37,19 @@ export const eventContractInstanceAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "ipfsMetadataHash",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "bytes32",

@@ -12,12 +12,13 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi"
+import { uploadMarketMetadata } from "../lib/ipfsUploader"
 import { metaMask } from "wagmi/connectors"
 import { eventContractInstanceAbi } from "../../docs/abi/eventContractInstanceAbi.js"
 import { parseAbiItem, decodeEventLog, keccak256, toBytes } from "viem"
 import { MarketsList } from "@/components/MarketsList"
 
-const FACTORY_ADDRESS = "0xfc58FefaDA53D508FD584278B8EED8e7A02c34B2" as const
+const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS as `0x${string}`
 
 export default function Home() {
   const [markets, setMarkets] = useState<string[]>([])
@@ -27,13 +28,16 @@ export default function Home() {
   // Modifier l'état initial du formulaire
   const [createFormData, setCreateFormData] = useState({
     title: "",
-    stakeToken: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9", // WETH Sepolia par défaut
+    marketDescription: "", // Nouvelle description générale du marché
+    imageFile: null as File | null, // New: To store the uploaded image file
+    stakeToken: process.env.NEXT_PUBLIC_WETH_ADDRESS as `0x${string}`,
     tokenType: "preset", // 'preset' ou 'custom'
     customTokenAddress: "",
     engagementDeadline: "",
     resolutionDeadline: "",
     creatorFee: "",
     predictionCount: "2",
+    events: [{ id: 0, name: "", description: "" }], // Nouveaux événements multiples
   })
   const { address, isConnected } = useAccount()
   const { connect } = useConnect()
@@ -263,11 +267,16 @@ export default function Home() {
 
     if (
       !createFormData.title ||
+      !createFormData.marketDescription || // Vérifier la nouvelle description
+      !createFormData.imageFile || // Updated: Check for either URL or file
       !createFormData.engagementDeadline ||
       !createFormData.resolutionDeadline ||
-      !createFormData.creatorFee
+      !createFormData.creatorFee ||
+      createFormData.events.some((event) => !event.name || !event.description) // Vérifier les événements
     ) {
-      alert("Veuillez remplir tous les champs obligatoires")
+      alert(
+        "Veuillez remplir tous les champs obligatoires, y compris les détails de l'événement."
+      )
       return
     }
 
@@ -288,6 +297,19 @@ export default function Home() {
     console.log("Est connecté:", isConnected)
 
     try {
+      const ipfsHash = await uploadMarketMetadata(
+        createFormData.title,
+        createFormData.marketDescription,
+        createFormData.imageFile,
+        createFormData.events
+      )
+      console.log("IPFS Hash:", ipfsHash)
+
+      if (!ipfsHash) {
+        alert("Échec du téléchargement des métadonnées IPFS.")
+        return
+      }
+
       // Générer un salt unique basé sur le titre et l'adresse
       const salt = keccak256(
         toBytes(`${createFormData.title}-${address}-${Date.now()}`)
@@ -306,6 +328,8 @@ export default function Home() {
         Math.floor(parseFloat(createFormData.creatorFee) * 100)
       )
 
+      console.log("ipfs-hash: ", ipfsHash)
+
       const args = [
         salt, // _salt (bytes32)
         tokenAddress as `0x${string}`, // _stakeToken (address)
@@ -313,7 +337,7 @@ export default function Home() {
         BigInt(resolutionDeadline), // _resolutionDeadline (uint256)
         creatorFeeWei, // _creatorFee (uint256)
         BigInt(createFormData.predictionCount), // _predictionCount (uint256)
-        "QmYwAPZWMgsWfLg2bXm2y2a9B3B3B3B3B3B3B3B3B3B3B", // Mock IPFS hash
+        ipfsHash, // Utiliser le hash IPFS réel
       ]
 
       console.log("Arguments pour createInstance:", args)
@@ -342,6 +366,8 @@ export default function Home() {
   const resetForm = () => {
     setCreateFormData({
       title: "",
+      marketDescription: "",
+      imageFile: null, // Reset image file
       stakeToken: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9", // WETH Sepolia par défaut
       tokenType: "preset", // 'preset' ou 'custom'
       customTokenAddress: "",
@@ -349,6 +375,7 @@ export default function Home() {
       resolutionDeadline: "",
       creatorFee: "",
       predictionCount: "2",
+      events: [{ id: 0, name: "", description: "" }],
     })
     setShowCreateForm(false)
   }
@@ -830,6 +857,24 @@ export default function Home() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description du marché *
+                </label>
+                <textarea
+                  value={createFormData.marketDescription}
+                  onChange={(e) =>
+                    setCreateFormData((prev) => ({
+                      ...prev,
+                      marketDescription: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  placeholder="Décrivez le marché en détail..."
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Token de mise *
                 </label>
 
@@ -884,20 +929,17 @@ export default function Home() {
                     }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
                   >
-                    <option value="0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9">
-                      WETH (Wrapped Ether) - Sepolia
+                    <option value={process.env.NEXT_PUBLIC_WETH_ADDRESS}>
+                      WETH Sepolia
                     </option>
-                    <option value="0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984">
-                      UNI (Uniswap) - Sepolia
+                    <option value={process.env.NEXT_PUBLIC_USDT_ADDRESS}>
+                      USDT
                     </option>
-                    <option value="0x6f14C02FC1F78322cFd7d707aB90f18baD3B54f5">
-                      USDC (USD Coin) - Sepolia
+                    <option value={process.env.NEXT_PUBLIC_USDC_ADDRESS}>
+                      USDC
                     </option>
-                    <option value="0x7169D38820dfd117C3FA1f22a697dBA58d90BA06">
-                      USDT (Tether) - Sepolia
-                    </option>
-                    <option value="0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357">
-                      DAI (Dai Stablecoin) - Sepolia
+                    <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>
+                      DAI
                     </option>
                   </select>
                 ) : (
@@ -976,23 +1018,91 @@ export default function Home() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Nombre de prédictions possibles
+                  Image
                 </label>
-                <select
-                  value={createFormData.predictionCount}
-                  onChange={(e) =>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        imageFile: e.target.files![0],
+                      }))
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Événements de prédiction *
+                </label>
+                {createFormData.events.map((event, index) => (
+                  <div key={index} className="flex space-x-2 mb-2">
+                    <input
+                      type="text"
+                      value={event.name}
+                      onChange={(e) => {
+                        const newEvents = [...createFormData.events]
+                        newEvents[index].name = e.target.value
+                        setCreateFormData((prev) => ({
+                          ...prev,
+                          events: newEvents,
+                        }))
+                      }}
+                      className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                      placeholder={`Titre de l'événement ${index + 1}`}
+                    />
+                    <input
+                      type="text"
+                      value={event.description}
+                      onChange={(e) => {
+                        const newEvents = [...createFormData.events]
+                        newEvents[index].description = e.target.value
+                        setCreateFormData((prev) => ({
+                          ...prev,
+                          events: newEvents,
+                        }))
+                      }}
+                      className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                      placeholder={`Description de l'événement ${index + 1}`}
+                    />
+                    {createFormData.events.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newEvents = createFormData.events.filter(
+                            (_, i) => i !== index
+                          )
+                          setCreateFormData((prev) => ({
+                            ...prev,
+                            events: newEvents,
+                          }))
+                        }}
+                        className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                      >
+                        Supprimer
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
                     setCreateFormData((prev) => ({
                       ...prev,
-                      predictionCount: e.target.value,
+                      events: [
+                        ...prev.events,
+                        { id: prev.events.length, name: "", description: "" },
+                      ],
                     }))
                   }
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
                 >
-                  <option value="2">2 (Oui/Non)</option>
-                  <option value="3">3 options</option>
-                  <option value="4">4 options</option>
-                  <option value="5">5 options</option>
-                </select>
+                  Ajouter un événement
+                </button>
               </div>
             </div>
 
