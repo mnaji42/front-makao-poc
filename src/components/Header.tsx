@@ -60,12 +60,24 @@ export default function Header() {
         </div>
       ) : isConnected ? (
         <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Connecté</p>
-            <p className="text-sm font-mono">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
-            </p>
-          </div>
+          <Link href="/user">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-slate-600 hover:bg-slate-700 border border-slate-500 rounded-lg text-gray-100 transition-colors">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              <span className="text-sm">Mon Compte</span>
+            </button>
+          </Link>
           <button
             onClick={() => disconnect()}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg text-gray-100 transition-colors"
