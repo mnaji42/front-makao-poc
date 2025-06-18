@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { getMarket, Market } from "@/lib/subgraph"
+import { getMarket } from "@/lib/subgraph"
 import MarketDetails from "./MarketDetails"
 
 interface MarketPageProps {
