@@ -7,6 +7,7 @@ import {
   usePublicClient,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useReadContract,
 } from "wagmi"
 import { uploadMarketMetadata } from "../lib/ipfsUploader"
 import { eventContractInstanceAbi } from "../../docs/abi/eventContractInstanceAbi.js"
@@ -32,8 +33,14 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
     resolutionDeadline: "",
     creatorFee: "",
     predictionCount: "2",
-    events: [{ id: 0, name: "", description: "" }],
+    events: [
+      { id: 0, name: "", description: "" },
+      { id: 0, name: "", description: "" },
+    ],
   })
+  const [predictedMarketAddress, setPredictedMarketAddress] = useState<
+    string | null
+  >(null)
 
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
@@ -112,10 +119,22 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         return
       }
 
-      // Générer un salt unique basé sur le titre et l'adresse
+      // Générer un salt unique basé sur le titre , l'adresse et la date
       const salt = keccak256(
         toBytes(`${createFormData.title}-${address}-${Date.now()}`)
       )
+
+      // 1. Prédire l'adresse du marché avec predictInstance
+      console.log("Prédiction de l'adresse du marché...")
+      const predictedAddress = await publicClient.readContract({
+        address: FACTORY_ADDRESS,
+        abi: eventContractInstanceAbi,
+        functionName: "predictInstance",
+        args: [salt],
+      })
+
+      console.log("Adresse prédite:", predictedAddress)
+      setPredictedMarketAddress((predictedAddress as string).toLowerCase())
 
       // Convertir les dates en timestamps
       const engagementDeadline = Math.floor(
@@ -179,62 +198,23 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
       predictionCount: "2",
       events: [{ id: 0, name: "", description: "" }],
     })
+    setPredictedMarketAddress(null)
     onClose()
   }
 
   // Reset form when transaction is confirmed and redirect to market page
   useEffect(() => {
-    if (isConfirmed && hash) {
-      const handleMarketCreated = async () => {
-        try {
-          // Récupérer la transaction pour obtenir les logs
-          const receipt = await publicClient?.getTransactionReceipt({ hash })
+    if (isConfirmed && hash && predictedMarketAddress) {
+      console.log(
+        "Transaction confirmée, redirection vers l'adresse du marché:",
+        predictedMarketAddress
+      )
 
-          if (receipt && receipt.logs) {
-            // Chercher l'événement InstanceCreated dans les logs
-            for (const log of receipt.logs) {
-              try {
-                const decoded = decodeEventLog({
-                  abi: [
-                    parseAbiItem(
-                      "event InstanceCreated(bytes32 indexed salt, address indexed instance, address indexed creator)"
-                    ),
-                  ],
-                  data: log.data,
-                  topics: log.topics,
-                })
-
-                if (decoded.eventName === "InstanceCreated") {
-                  // Utiliser le salt comme marketId
-                  const marketId = decoded.args.salt
-                  console.log("Marché créé avec salt ID:", marketId)
-
-                  // Rediriger vers la page du marché avec le salt
-                  router.push(`/market/${marketId}`)
-                  resetForm()
-                  return
-                }
-              } catch (error) {
-                // Ignorer les logs qui ne correspondent pas à notre événement
-                continue
-              }
-            }
-          }
-
-          // Fallback: si on ne trouve pas l'événement, utiliser le hash de transaction
-          console.log("Redirection avec hash de transaction:", hash)
-          router.push(`/market/${hash}`)
-          resetForm()
-        } catch (error) {
-          console.error("Erreur lors de la redirection:", error)
-          alert("Marché créé avec succès!")
-          resetForm()
-        }
-      }
-
-      handleMarketCreated()
+      // Rediriger vers la page du marché avec l'adresse prédite (qui est le vrai marketId)
+      router.push(`/market/${predictedMarketAddress}`)
+      resetForm()
     }
-  }, [isConfirmed, hash, publicClient, router])
+  }, [isConfirmed, hash, router, predictedMarketAddress])
 
   if (!isOpen) return null
 
@@ -323,9 +303,7 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
                   }
                   className="mr-2"
                 />
-                <span className="text-sm text-gray-300">
-                  Tokens prédéfinis
-                </span>
+                <span className="text-sm text-gray-300">Tokens prédéfinis</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -367,9 +345,7 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
                 <option value={process.env.NEXT_PUBLIC_USDC_ADDRESS}>
                   USDC
                 </option>
-                <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>
-                  DAI
-                </option>
+                <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>DAI</option>
               </select>
             ) : (
               <input
