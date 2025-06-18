@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react'
-import { useNotify } from '../contexts/NotificationContext'
-import { TransactionNotification } from '../components/notifications/TransactionNotification'
+import { useEffect } from "react"
+import { useNotify } from "../contexts/NotificationContext"
+import { TransactionNotification } from "../components/notifications/TransactionNotification"
 
 interface UseTransactionNotificationProps {
   hash?: string
@@ -17,11 +17,11 @@ interface UseTransactionNotificationProps {
 
 export function useTransactionNotification({
   hash,
-  title = 'Transaction en cours',
-  successTitle = 'Transaction confirmée',
-  successMessage = 'Votre transaction a été confirmée avec succès.',
-  errorTitle = 'Transaction échouée',
-  errorMessage = 'Votre transaction a échoué. Veuillez réessayer.',
+  title = "Transaction en cours",
+  successTitle = "Transaction confirmée",
+  successMessage = "Votre transaction a été confirmée avec succès.",
+  errorTitle = "Transaction échouée",
+  errorMessage = "Votre transaction a échoué. Veuillez réessayer.",
   onSuccess,
   onError,
 }: UseTransactionNotificationProps) {
@@ -31,9 +31,9 @@ export function useTransactionNotification({
     if (!hash) return
 
     const notificationId = notify.custom({
-      type: 'loading',
+      type: "loading",
       title,
-      message: 'Confirmation en cours...',
+      message: "Confirmation en cours...",
       duration: 0,
       component: (
         <TransactionNotification
@@ -53,5 +53,15 @@ export function useTransactionNotification({
     return () => {
       // Optionnel: nettoyer la notification si le composant se démonte
     }
-  }, [hash, title, successTitle, successMessage, errorTitle, errorMessage, onSuccess, onError, notify])
+  }, [
+    hash,
+    title,
+    successTitle,
+    successMessage,
+    errorTitle,
+    errorMessage,
+    onSuccess,
+    onError,
+    notify,
+  ])
 }

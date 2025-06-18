@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { useWaitForTransactionReceipt } from 'wagmi'
+import React from "react"
+import { useWaitForTransactionReceipt } from "wagmi"
 
 interface TransactionNotificationProps {
   hash: string
@@ -10,11 +10,11 @@ interface TransactionNotificationProps {
   showStatus?: boolean // Pour contrôler l'affichage du statut
 }
 
-export function TransactionNotification({ 
-  hash, 
-  onSuccess, 
+export function TransactionNotification({
+  hash,
+  onSuccess,
   onError,
-  showStatus = true
+  showStatus = true,
 }: TransactionNotificationProps) {
   const {
     data: receipt,
@@ -45,31 +45,33 @@ export function TransactionNotification({
   }, [isError, error, onError, hasTriggeredError])
 
   const getStatusColor = () => {
-    if (isLoading) return 'text-yellow-400'
-    if (isSuccess) return 'text-green-400'
-    if (isError) return 'text-red-400'
-    return 'text-gray-400'
+    if (isLoading) return "text-yellow-400"
+    if (isSuccess) return "text-green-400"
+    if (isError) return "text-red-400"
+    return "text-gray-400"
   }
 
   const getStatusText = () => {
-    if (isLoading) return 'En cours...'
-    if (isSuccess) return 'Confirmée'
-    if (isError) return 'Échouée'
-    return 'En attente'
+    if (isLoading) return "En cours..."
+    if (isSuccess) return "Confirmée"
+    if (isError) return "Échouée"
+    return "En attente"
   }
 
   const getStatusIcon = () => {
-    if (isLoading) return '⟳'
-    if (isSuccess) return '✓'
-    if (isError) return '✕'
-    return '⏳'
+    if (isLoading) return "⟳"
+    if (isSuccess) return "✓"
+    if (isError) return "✕"
+    return "⏳"
   }
 
   return (
     <div className="space-y-2">
       {showStatus && (
         <div className="flex items-center space-x-2">
-          <span className={`${getStatusColor()} ${isLoading ? 'animate-spin' : ''}`}>
+          <span
+            className={`${getStatusColor()} ${isLoading ? "animate-spin" : ""}`}
+          >
             {getStatusIcon()}
           </span>
           <span className={`text-sm font-medium ${getStatusColor()}`}>
@@ -77,11 +79,11 @@ export function TransactionNotification({
           </span>
         </div>
       )}
-      
+
       <div className="text-xs text-gray-400 space-y-1">
         <div className="flex items-center space-x-1">
           <span>Hash:</span>
-          <a 
+          <a
             href={`https://sepolia.etherscan.io/tx/${hash}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -90,7 +92,7 @@ export function TransactionNotification({
             {hash.slice(0, 10)}...{hash.slice(-8)}
           </a>
         </div>
-        
+
         {isSuccess && receipt && (
           <div className="space-y-1">
             <div className="flex items-center space-x-1">
@@ -107,11 +109,9 @@ export function TransactionNotification({
             </div>
           </div>
         )}
-        
+
         {isError && error && (
-          <div className="text-red-400 text-xs">
-            Erreur: {error.message}
-          </div>
+          <div className="text-red-400 text-xs">Erreur: {error.message}</div>
         )}
       </div>
     </div>

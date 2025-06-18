@@ -43,7 +43,7 @@ function Providers({ children }: { children: React.ReactNode }) {
               <Header />
               {children}
             </div>
-            
+
             {/* Conteneur de notifications */}
             <NotificationContainer />
           </div>

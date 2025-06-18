@@ -25,8 +25,11 @@ interface CreateMarketModalProps {
 
 export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
   const router = useRouter()
-  const { addNotification, updateNotification, removeNotification } = useNotifications()
-  const [transactionNotificationId, setTransactionNotificationId] = useState<string | null>(null)
+  const { addNotification, updateNotification, removeNotification } =
+    useNotifications()
+  const [transactionNotificationId, setTransactionNotificationId] = useState<
+    string | null
+  >(null)
   const [createFormData, setCreateFormData] = useState({
     title: "",
     marketDescription: "",
@@ -41,7 +44,9 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
     events: [{ id: 0, name: "", description: "" }],
   })
   const [currentSalt, setCurrentSalt] = useState<string | null>(null)
-  const [predictedMarketAddress, setPredictedMarketAddress] = useState<string | null>(null)
+  const [predictedMarketAddress, setPredictedMarketAddress] = useState<
+    string | null
+  >(null)
 
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
@@ -177,8 +182,8 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
     } catch (error) {
       console.error("Erreur lors de la création du marché:", error)
       const errorNotificationId = addNotification({
-        type: 'error',
-        title: 'Erreur lors de la création',
+        type: "error",
+        title: "Erreur lors de la création",
         message: `Impossible de créer le marché: ${error.message}`,
       })
     }
@@ -207,9 +212,9 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
   useEffect(() => {
     if (hash && predictedMarketAddress && !transactionNotificationId) {
       const notificationId = addNotification({
-        type: 'loading',
-        title: 'Création du marché en cours',
-        message: 'Votre transaction est en cours de confirmation...',
+        type: "loading",
+        title: "Création du marché en cours",
+        message: "Votre transaction est en cours de confirmation...",
         duration: 0,
         component: (
           <TransactionNotification
@@ -225,11 +230,8 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
   // Gérer les mises à jour de statut de transaction
   const handleTransactionSuccess = (receipt: any) => {
     console.log("Transaction confirmée:", receipt)
-    // Redirection après 3 secondes pour laisser le temps à l'indexation
-    setTimeout(() => {
-      router.push(`/market/${predictedMarketAddress}`)
-      resetForm()
-    }, 3000)
+    // Pas de redirection automatique, l'utilisateur choisit via la notification
+    resetForm()
   }
 
   const handleTransactionError = (error: any) => {
@@ -250,327 +252,333 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
           predictedMarketAddress={predictedMarketAddress}
         />
       )}
-      
+
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-100">
-            Créer un Nouveau Marché
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-100">
+              Créer un Nouveau Marché
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Titre du marché *
-            </label>
-            <input
-              type="text"
-              value={createFormData.title}
-              onChange={(e) =>
-                setCreateFormData((prev) => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-              placeholder="Ex: Bitcoin atteindra-t-il 100k$ ?"
-            />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Description du marché *
-            </label>
-            <textarea
-              value={createFormData.marketDescription}
-              onChange={(e) =>
-                setCreateFormData((prev) => ({
-                  ...prev,
-                  marketDescription: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-              placeholder="Décrivez le marché en détail..."
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Token de mise *
-            </label>
-
-            {/* Radio buttons pour choisir entre preset et custom */}
-            <div className="flex gap-4 mb-3">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="tokenType"
-                  value="preset"
-                  checked={createFormData.tokenType === "preset"}
-                  onChange={(e) =>
-                    setCreateFormData((prev) => ({
-                      ...prev,
-                      tokenType: e.target.value,
-                    }))
-                  }
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-300">Tokens prédéfinis</span>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Titre du marché *
               </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="tokenType"
-                  value="custom"
-                  checked={createFormData.tokenType === "custom"}
-                  onChange={(e) =>
-                    setCreateFormData((prev) => ({
-                      ...prev,
-                      tokenType: e.target.value,
-                    }))
-                  }
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-300">
-                  Adresse personnalisée
-                </span>
-              </label>
-            </div>
-
-            {createFormData.tokenType === "preset" ? (
-              <select
-                value={createFormData.stakeToken}
+              <input
+                type="text"
+                value={createFormData.title}
                 onChange={(e) =>
                   setCreateFormData((prev) => ({
                     ...prev,
-                    stakeToken: e.target.value,
+                    title: e.target.value,
                   }))
                 }
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-              >
-                <option value={process.env.NEXT_PUBLIC_WETH_ADDRESS}>
-                  WETH Sepolia
-                </option>
-                <option value={process.env.NEXT_PUBLIC_USDT_ADDRESS}>
-                  USDT
-                </option>
-                <option value={process.env.NEXT_PUBLIC_USDC_ADDRESS}>
-                  USDC
-                </option>
-                <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>DAI</option>
-              </select>
-            ) : (
-              <input
-                type="text"
-                value={createFormData.customTokenAddress}
+                placeholder="Ex: Bitcoin atteindra-t-il 100k$ ?"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Description du marché *
+              </label>
+              <textarea
+                value={createFormData.marketDescription}
                 onChange={(e) =>
                   setCreateFormData((prev) => ({
                     ...prev,
-                    customTokenAddress: e.target.value,
+                    marketDescription: e.target.value,
                   }))
                 }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 font-mono text-sm"
-                placeholder="0x... (Adresse du contrat ERC-20)"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                placeholder="Décrivez le marché en détail..."
+                rows={3}
               />
-            )}
+            </div>
 
-            <p className="text-xs text-gray-500 mt-1">
-              {createFormData.tokenType === "preset"
-                ? "Tokens de test disponibles sur Sepolia avec des faucets"
-                : "Entrez l'adresse d'un contrat ERC-20 valide sur Sepolia"}
-            </p>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Token de mise *
+              </label>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Date limite d'engagement *
-            </label>
-            <input
-              type="datetime-local"
-              value={createFormData.engagementDeadline}
-              onChange={(e) =>
-                setCreateFormData((prev) => ({
-                  ...prev,
-                  engagementDeadline: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+              {/* Radio buttons pour choisir entre preset et custom */}
+              <div className="flex gap-4 mb-3">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="tokenType"
+                    value="preset"
+                    checked={createFormData.tokenType === "preset"}
+                    onChange={(e) =>
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        tokenType: e.target.value,
+                      }))
+                    }
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-300">
+                    Tokens prédéfinis
+                  </span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="tokenType"
+                    value="custom"
+                    checked={createFormData.tokenType === "custom"}
+                    onChange={(e) =>
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        tokenType: e.target.value,
+                      }))
+                    }
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-300">
+                    Adresse personnalisée
+                  </span>
+                </label>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Date limite de résolution *
-            </label>
-            <input
-              type="datetime-local"
-              value={createFormData.resolutionDeadline}
-              onChange={(e) =>
-                setCreateFormData((prev) => ({
-                  ...prev,
-                  resolutionDeadline: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+              {createFormData.tokenType === "preset" ? (
+                <select
+                  value={createFormData.stakeToken}
+                  onChange={(e) =>
+                    setCreateFormData((prev) => ({
+                      ...prev,
+                      stakeToken: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                >
+                  <option value={process.env.NEXT_PUBLIC_WETH_ADDRESS}>
+                    WETH Sepolia
+                  </option>
+                  <option value={process.env.NEXT_PUBLIC_USDT_ADDRESS}>
+                    USDT
+                  </option>
+                  <option value={process.env.NEXT_PUBLIC_USDC_ADDRESS}>
+                    USDC
+                  </option>
+                  <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>
+                    DAI
+                  </option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={createFormData.customTokenAddress}
+                  onChange={(e) =>
+                    setCreateFormData((prev) => ({
+                      ...prev,
+                      customTokenAddress: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                  placeholder="0x... (Adresse du contrat ERC-20)"
+                />
+              )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Frais du créateur (wei)
-            </label>
-            <input
-              type="number"
-              value={createFormData.creatorFee}
-              onChange={(e) =>
-                setCreateFormData((prev) => ({
-                  ...prev,
-                  creatorFee: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-              placeholder="0"
-            />
-          </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {createFormData.tokenType === "preset"
+                  ? "Tokens de test disponibles sur Sepolia avec des faucets"
+                  : "Entrez l'adresse d'un contrat ERC-20 valide sur Sepolia"}
+              </p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Image
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Date limite d'engagement *
+              </label>
+              <input
+                type="datetime-local"
+                value={createFormData.engagementDeadline}
+                onChange={(e) =>
                   setCreateFormData((prev) => ({
                     ...prev,
-                    imageFile: e.target.files![0],
+                    engagementDeadline: e.target.value,
                   }))
                 }
-              }}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-          </div>
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Événements de prédiction *
-            </label>
-            {createFormData.events.map((event, index) => (
-              <div key={index} className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={event.name}
-                  onChange={(e) => {
-                    const newEvents = [...createFormData.events]
-                    newEvents[index].name = e.target.value
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Date limite de résolution *
+              </label>
+              <input
+                type="datetime-local"
+                value={createFormData.resolutionDeadline}
+                onChange={(e) =>
+                  setCreateFormData((prev) => ({
+                    ...prev,
+                    resolutionDeadline: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Frais du créateur (wei)
+              </label>
+              <input
+                type="number"
+                value={createFormData.creatorFee}
+                onChange={(e) =>
+                  setCreateFormData((prev) => ({
+                    ...prev,
+                    creatorFee: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
                     setCreateFormData((prev) => ({
                       ...prev,
-                      events: newEvents,
+                      imageFile: e.target.files![0],
                     }))
-                  }}
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                  placeholder={`Titre de l'événement ${index + 1}`}
-                />
-                <input
-                  type="text"
-                  value={event.description}
-                  onChange={(e) => {
-                    const newEvents = [...createFormData.events]
-                    newEvents[index].description = e.target.value
-                    setCreateFormData((prev) => ({
-                      ...prev,
-                      events: newEvents,
-                    }))
-                  }}
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                  placeholder={`Description de l'événement ${index + 1}`}
-                />
-                {createFormData.events.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newEvents = createFormData.events.filter(
-                        (_, i) => i !== index
-                      )
+                  }
+                }}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Événements de prédiction *
+              </label>
+              {createFormData.events.map((event, index) => (
+                <div key={index} className="flex space-x-2 mb-2">
+                  <input
+                    type="text"
+                    value={event.name}
+                    onChange={(e) => {
+                      const newEvents = [...createFormData.events]
+                      newEvents[index].name = e.target.value
                       setCreateFormData((prev) => ({
                         ...prev,
                         events: newEvents,
                       }))
                     }}
-                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-                  >
-                    Supprimer
-                  </button>
-                )}
-              </div>
-            ))}
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                    placeholder={`Titre de l'événement ${index + 1}`}
+                  />
+                  <input
+                    type="text"
+                    value={event.description}
+                    onChange={(e) => {
+                      const newEvents = [...createFormData.events]
+                      newEvents[index].description = e.target.value
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        events: newEvents,
+                      }))
+                    }}
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                    placeholder={`Description de l'événement ${index + 1}`}
+                  />
+                  {createFormData.events.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newEvents = createFormData.events.filter(
+                          (_, i) => i !== index
+                        )
+                        setCreateFormData((prev) => ({
+                          ...prev,
+                          events: newEvents,
+                        }))
+                      }}
+                      className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                    >
+                      Supprimer
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setCreateFormData((prev) => ({
+                    ...prev,
+                    events: [
+                      ...prev.events,
+                      { id: prev.events.length, name: "", description: "" },
+                    ],
+                  }))
+                }
+                className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+              >
+                Ajouter un événement
+              </button>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
             <button
-              type="button"
-              onClick={() =>
-                setCreateFormData((prev) => ({
-                  ...prev,
-                  events: [
-                    ...prev.events,
-                    { id: prev.events.length, name: "", description: "" },
-                  ],
-                }))
-              }
-              className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
             >
-              Ajouter un événement
+              Annuler
+            </button>
+            <button
+              onClick={handleCreateMarket}
+              disabled={isPending || isConfirming}
+              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            >
+              {isPending
+                ? "Signature..."
+                : isConfirming
+                ? "Confirmation..."
+                : "Créer"}
             </button>
           </div>
-        </div>
 
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={handleCreateMarket}
-            disabled={isPending || isConfirming}
-            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-          >
-            {isPending
-              ? "Signature..."
-              : isConfirming
-              ? "Confirmation..."
-              : "Créer"}
-          </button>
+          {hash && (
+            <div className="mt-4 p-3 bg-gray-700/50 rounded-lg">
+              <p className="text-sm text-gray-300">Transaction envoyée:</p>
+              <p className="text-xs font-mono text-gray-400 break-all">
+                {hash}
+              </p>
+            </div>
+          )}
         </div>
-
-        {hash && (
-          <div className="mt-4 p-3 bg-gray-700/50 rounded-lg">
-            <p className="text-sm text-gray-300">Transaction envoyée:</p>
-            <p className="text-xs font-mono text-gray-400 break-all">{hash}</p>
-          </div>
-        )}
       </div>
-    </div>
     </>
   )
 }

@@ -24,8 +24,6 @@ export default function Home() {
   const { disconnect } = useDisconnect()
   const publicClient = usePublicClient()
 
-
-
   // Lecture de l'adresse d'implémentation (seulement si connecté)
   // DÉSACTIVÉ par défaut - sera appelé seulement lors de la création d'un marché
   const { data: implementation, refetch: refetchImplementation } =
@@ -214,8 +212,6 @@ export default function Home() {
   const handleConnect = () => {
     connect({ connector: metaMask() })
   }
-
-
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 relative overflow-hidden">
@@ -410,8 +406,6 @@ export default function Home() {
           </div>
         )}
       </div>
-
-
     </div>
   )
 }

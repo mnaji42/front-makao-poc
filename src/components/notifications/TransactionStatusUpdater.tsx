@@ -1,9 +1,13 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { useWaitForTransactionReceipt, useWatchContractEvent, usePublicClient } from 'wagmi'
-import { useNotifications } from '../../contexts/NotificationContext'
-import factoryAbi from '../../../docs/factory-contract-abi.json'
+import React from "react"
+import {
+  useWaitForTransactionReceipt,
+  useWatchContractEvent,
+  usePublicClient,
+} from "wagmi"
+import { useNotifications } from "../../contexts/NotificationContext"
+import factoryAbi from "../../../docs/factory-contract-abi.json"
 
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS as `0x${string}`
 
@@ -15,22 +19,28 @@ interface TransactionStatusUpdaterProps {
   predictedMarketAddress?: string
 }
 
-type MarketCreationStage = 'factory_transaction' | 'market_deployment' | 'subgraph_indexing' | 'completed' | 'error'
+type MarketCreationStage =
+  | "market_deployment"
+  | "subgraph_indexing"
+  | "completed"
+  | "error"
 
-export function TransactionStatusUpdater({ 
-  hash, 
+export function TransactionStatusUpdater({
+  hash,
   notificationId,
-  onSuccess, 
+  onSuccess,
   onError,
-  predictedMarketAddress
+  predictedMarketAddress,
 }: TransactionStatusUpdaterProps) {
   const { updateNotification } = useNotifications()
   const publicClient = usePublicClient()
-  const [currentStage, setCurrentStage] = React.useState<MarketCreationStage>('factory_transaction')
+  const [currentStage, setCurrentStage] =
+    React.useState<MarketCreationStage>("market_deployment")
   const [marketDeployed, setMarketDeployed] = React.useState(false)
   const [subgraphIndexed, setSubgraphIndexed] = React.useState(false)
-  const [hasProcessedFactoryTx, setHasProcessedFactoryTx] = React.useState(false)
-  
+  const [hasProcessedFactoryTx, setHasProcessedFactoryTx] =
+    React.useState(false)
+
   const {
     data: receipt,
     isLoading: isFactoryTxLoading,
@@ -41,157 +51,99 @@ export function TransactionStatusUpdater({
     hash: hash as `0x${string}`,
   })
 
-  // Étape 1: Surveiller la transaction factory (une seule fois)
+  // Étape 1: Surveiller la transaction factory et le déploiement du marché
   React.useEffect(() => {
-    if (currentStage !== 'factory_transaction' || hasProcessedFactoryTx) return
+    if (hasProcessedFactoryTx) return
 
     if (isFactoryTxLoading) {
       updateNotification(notificationId, {
-        message: '🔄 Étape 1/3: Confirmation de la transaction factory...',
+        message: "🔄 Étape 1/2: Déploiement du contrat marché...",
       })
     } else if (isFactoryTxSuccess && receipt) {
-      console.log('✅ Transaction factory confirmée:', receipt)
+      console.log("✅ Marché déployé avec succès:", receipt)
+      console.log("🔄 Passage à l'étape 2 - subgraph_indexing")
+      console.log("🔍 Adresse factory:", FACTORY_ADDRESS)
+      console.log("🔍 Adresse prédite:", predictedMarketAddress)
       setHasProcessedFactoryTx(true)
-      setCurrentStage('market_deployment')
+      setMarketDeployed(true)
+      setCurrentStage("subgraph_indexing")
       updateNotification(notificationId, {
-        message: '🔄 Étape 2/3: Déploiement du contrat marché en cours...',
+        type: "success",
+        title: "Marché déployé avec succès!",
+        message:
+          "🎉 Votre marché a été déployé avec succès sur la blockchain. Il sera disponible dans votre compte très bientôt.",
+        duration: 8000,
+        component: (
+          <div className="mt-2 space-y-2">
+            {/* Lien vers le marché */}
+            <div>
+              <a
+                href={`/market/${predictedMarketAddress}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200"
+              >
+                🔗 Voir le marché
+              </a>
+            </div>
+            
+            {/* Informations de transaction */}
+            <div className="text-xs text-gray-400 space-y-1">
+              <div className="flex items-center space-x-1">
+                <span>Hash:</span>
+                <a
+                  href={`https://sepolia.etherscan.io/tx/${receipt.transactionHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline font-mono break-all"
+                >
+                  {receipt.transactionHash.slice(0, 10)}...{receipt.transactionHash.slice(-8)}
+                </a>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span>Bloc:</span>
+                <span className="text-green-400 font-mono">
+                  {receipt.blockNumber?.toString()}
+                </span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span>Gas utilisé:</span>
+                <span className="text-green-400 font-mono">
+                  {receipt.gasUsed?.toString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
       })
+      setCurrentStage("completed")
+      onSuccess?.(receipt)
+      return
     } else if (isFactoryTxError && factoryTxError) {
       setHasProcessedFactoryTx(true)
-      setCurrentStage('error')
+      setCurrentStage("error")
       updateNotification(notificationId, {
-        type: 'error',
-        title: 'Échec de la transaction factory',
-        message: 'La transaction factory a échoué. Veuillez réessayer.',
-        duration: 5000
+        type: "error",
+        title: "Échec du déploiement",
+        message: "Le déploiement du marché a échoué. Veuillez réessayer.",
+        duration: 5000,
       })
       onError?.(factoryTxError)
     }
-  }, [isFactoryTxLoading, isFactoryTxSuccess, isFactoryTxError, receipt, factoryTxError, currentStage, hasProcessedFactoryTx, notificationId, updateNotification, onError])
+  }, [
+    isFactoryTxLoading,
+    isFactoryTxSuccess,
+    isFactoryTxError,
+    receipt,
+    factoryTxError,
+    hasProcessedFactoryTx,
+    notificationId,
+  ])
 
-  // Étape 2: Surveiller l'événement MarketCreated du factory (seulement si nécessaire)
-  useWatchContractEvent({
-    address: FACTORY_ADDRESS,
-    abi: factoryAbi,
-    eventName: 'MarketCreated',
-    enabled: currentStage === 'market_deployment' && !marketDeployed, // Optimisation: seulement quand nécessaire
-    onLogs(logs) {
-      if (currentStage !== 'market_deployment' || marketDeployed) return
-      
-      // Vérifier si l'événement correspond à notre marché prédit
-      const relevantLog = logs.find(log => {
-        const marketAddress = log.args?.marketAddress as string
-        return marketAddress?.toLowerCase() === predictedMarketAddress?.toLowerCase()
-      })
-      
-      if (relevantLog) {
-        console.log('✅ Contrat marché déployé:', relevantLog.args?.marketAddress)
-        setMarketDeployed(true)
-        setCurrentStage('subgraph_indexing')
-        updateNotification(notificationId, {
-          message: '🔄 Étape 3/3: Indexation du subgraph en cours...',
-        })
-      }
-    },
-  })
+  // Note: L'événement CreateInstance est déjà capturé par useWaitForTransactionReceipt
+  // Pas besoin d'un useWatchContractEvent séparé
 
-  // Étape 3: Polling du subgraph pour vérifier l'indexation (réduit à toutes les 5 secondes)
-  React.useEffect(() => {
-    if (currentStage !== 'subgraph_indexing' || !predictedMarketAddress) return
-
-    let pollInterval: NodeJS.Timeout
-    let pollCount = 0
-    const maxPolls = 12 // 12 tentatives = 60 secondes maximum (toutes les 5 secondes)
-
-    const pollSubgraph = async () => {
-      try {
-        const subgraphUrl = process.env.NEXT_PUBLIC_SUBGRAPH_URL || 'http://localhost:8000/subgraphs/name/makao'
-        
-        const query = `
-          query GetMarket($id: String!) {
-            market(id: $id) {
-              id
-              instanceAddress
-            }
-          }
-        `
-        
-        const response = await fetch(subgraphUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query,
-            variables: { id: predictedMarketAddress.toLowerCase() }
-          })
-        })
-        
-        const data = await response.json()
-        
-        if (data.data?.market) {
-          console.log('✅ Marché indexé dans le subgraph:', data.data.market)
-          setSubgraphIndexed(true)
-          setCurrentStage('completed')
-          clearInterval(pollInterval)
-          
-          updateNotification(notificationId, {
-            type: 'success',
-            title: 'Marché créé avec succès!',
-            message: '✅ Toutes les étapes terminées. Redirection dans 3 secondes...',
-            duration: 3000
-          })
-          
-          onSuccess?.(receipt)
-        } else {
-          pollCount++
-          console.log(`🔍 Tentative ${pollCount}/${maxPolls} - Marché non encore indexé`)
-          
-          if (pollCount >= maxPolls) {
-            console.warn('⚠️ Timeout: Le marché n\'a pas été indexé dans les temps')
-            clearInterval(pollInterval)
-            setCurrentStage('completed')
-            
-            updateNotification(notificationId, {
-              type: 'warning',
-              title: 'Marché créé (indexation en cours)',
-              message: '⚠️ Le marché est créé mais l\'indexation prend plus de temps que prévu. Redirection dans 3 secondes...',
-              duration: 3000
-            })
-            
-            onSuccess?.(receipt)
-          }
-        }
-      } catch (error) {
-        console.error('Erreur lors du polling du subgraph:', error)
-        pollCount++
-        if (pollCount >= maxPolls) {
-          clearInterval(pollInterval)
-          setCurrentStage('completed')
-          
-          updateNotification(notificationId, {
-            type: 'warning',
-            title: 'Marché créé (vérification impossible)',
-            message: '⚠️ Le marché est créé mais nous ne pouvons pas vérifier l\'indexation. Redirection dans 3 secondes...',
-            duration: 3000
-          })
-          
-          onSuccess?.(receipt)
-        }
-      }
-    }
-
-    // Attendre 5 secondes avant la première vérification pour laisser le temps au subgraph
-    const initialDelay = setTimeout(() => {
-      pollSubgraph() // Première vérification immédiate
-      pollInterval = setInterval(pollSubgraph, 5000) // Puis toutes les 5 secondes
-    }, 5000)
-
-    return () => {
-      clearTimeout(initialDelay)
-      if (pollInterval) clearInterval(pollInterval)
-    }
-  }, [currentStage, predictedMarketAddress, notificationId, updateNotification, onSuccess, receipt])
+  // Plus besoin d'étape 2 - tout se termine à l'étape 1
 
   // Ce composant ne rend rien, il ne fait que gérer les mises à jour
   return null

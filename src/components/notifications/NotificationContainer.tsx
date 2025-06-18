@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { useNotifications } from '../../contexts/NotificationContext'
-import { NotificationItem } from './NotificationItem'
+import React from "react"
+import { useNotifications } from "../../contexts/NotificationContext"
+import { NotificationItem } from "./NotificationItem"
 
 export function NotificationContainer() {
   const { notifications } = useNotifications()
