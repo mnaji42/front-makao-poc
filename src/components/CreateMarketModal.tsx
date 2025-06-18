@@ -12,6 +12,9 @@ import {
 import { uploadMarketMetadata } from "../lib/ipfsUploader"
 import { eventContractInstanceAbi } from "../../docs/abi/eventContractInstanceAbi.js"
 import { parseAbiItem, decodeEventLog, keccak256, toBytes } from "viem"
+import { useNotifications } from "../contexts/NotificationContext"
+import { TransactionNotification } from "./notifications/TransactionNotification"
+import { TransactionStatusUpdater } from "./notifications/TransactionStatusUpdater"
 
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS as `0x${string}`
 
@@ -22,6 +25,8 @@ interface CreateMarketModalProps {
 
 export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
   const router = useRouter()
+  const { addNotification, updateNotification, removeNotification } = useNotifications()
+  const [transactionNotificationId, setTransactionNotificationId] = useState<string | null>(null)
   const [createFormData, setCreateFormData] = useState({
     title: "",
     marketDescription: "",
@@ -33,14 +38,10 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
     resolutionDeadline: "",
     creatorFee: "",
     predictionCount: "2",
-    events: [
-      { id: 0, name: "", description: "" },
-      { id: 0, name: "", description: "" },
-    ],
+    events: [{ id: 0, name: "", description: "" }],
   })
-  const [predictedMarketAddress, setPredictedMarketAddress] = useState<
-    string | null
-  >(null)
+  const [currentSalt, setCurrentSalt] = useState<string | null>(null)
+  const [predictedMarketAddress, setPredictedMarketAddress] = useState<string | null>(null)
 
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
@@ -164,23 +165,22 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
 
       console.log("Arguments pour createInstance:", args)
 
-      const result = writeContract({
+      // 2. Créer l'instance sur la blockchain
+      writeContract({
         address: FACTORY_ADDRESS,
         abi: eventContractInstanceAbi,
         functionName: "createInstance",
         args,
       })
 
-      console.log("writeContract appelée, résultat:", result)
-      console.log("État isPending après writeContract:", isPending)
-
-      // Attendre un peu pour voir si l'état change
-      setTimeout(() => {
-        console.log("État après 1 seconde:", { isPending, hash, writeError })
-      }, 1000)
+      console.log("Transaction de création envoyée")
     } catch (error) {
       console.error("Erreur lors de la création du marché:", error)
-      alert(`Erreur lors de la création du marché: ${error.message}`)
+      const errorNotificationId = addNotification({
+        type: 'error',
+        title: 'Erreur lors de la création',
+        message: `Impossible de créer le marché: ${error.message}`,
+      })
     }
   }
 
@@ -199,27 +199,59 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
       events: [{ id: 0, name: "", description: "" }],
     })
     setPredictedMarketAddress(null)
+    setTransactionNotificationId(null)
     onClose()
   }
 
-  // Reset form when transaction is confirmed and redirect to market page
+  // Créer une notification de transaction unique
   useEffect(() => {
-    if (isConfirmed && hash && predictedMarketAddress) {
-      console.log(
-        "Transaction confirmée, redirection vers l'adresse du marché:",
-        predictedMarketAddress
-      )
+    if (hash && predictedMarketAddress && !transactionNotificationId) {
+      const notificationId = addNotification({
+        type: 'loading',
+        title: 'Création du marché en cours',
+        message: 'Votre transaction est en cours de confirmation...',
+        duration: 0,
+        component: (
+          <TransactionNotification
+            hash={hash}
+            showStatus={false} // On gère le statut dans la notification principale
+          />
+        ),
+      })
+      setTransactionNotificationId(notificationId)
+    }
+  }, [hash, predictedMarketAddress, transactionNotificationId, addNotification])
 
-      // Rediriger vers la page du marché avec l'adresse prédite (qui est le vrai marketId)
+  // Gérer les mises à jour de statut de transaction
+  const handleTransactionSuccess = (receipt: any) => {
+    console.log("Transaction confirmée:", receipt)
+    // Redirection après 3 secondes pour laisser le temps à l'indexation
+    setTimeout(() => {
       router.push(`/market/${predictedMarketAddress}`)
       resetForm()
-    }
-  }, [isConfirmed, hash, router, predictedMarketAddress])
+    }, 3000)
+  }
+
+  const handleTransactionError = (error: any) => {
+    console.error("Erreur de transaction:", error)
+  }
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <>
+      {/* Composant invisible pour gérer les mises à jour de notification */}
+      {transactionNotificationId && hash && (
+        <TransactionStatusUpdater
+          hash={hash}
+          notificationId={transactionNotificationId}
+          onSuccess={handleTransactionSuccess}
+          onError={handleTransactionError}
+          predictedMarketAddress={predictedMarketAddress}
+        />
+      )}
+      
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-100">
@@ -539,5 +571,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         )}
       </div>
     </div>
+    </>
   )
 }
