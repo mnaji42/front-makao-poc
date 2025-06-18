@@ -100,7 +100,8 @@ export function MarketCard({ market, onQuickBet }: MarketCardProps) {
 
   return (
     <div
-      className="relative bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-gray-500 transition-all duration-300 cursor-pointer group"
+      className="relative bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-gray-500 transition-all duration-300 cursor-pointer group overflow-visible"
+      style={{ zIndex: isHovered ? 10000 : 1 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false)
@@ -158,13 +159,20 @@ export function MarketCard({ market, onQuickBet }: MarketCardProps) {
         </div>
       </div>
 
-      {/* Informations détaillées au hover */}
+      {/* Panneau d'informations détaillées à droite au hover */}
       <div
-        className={`transition-all duration-300 overflow-hidden ${
-          isHovered ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        className={`absolute left-full top-0 bottom-0 w-80 bg-gray-800/95 backdrop-blur-sm border border-gray-600 rounded-xl p-6 shadow-2xl transition-all duration-300 ${
+          isHovered
+            ? "opacity-100 translate-x-0"
+            : "opacity-0 translate-x-4 pointer-events-none"
         }`}
+        style={{ zIndex: 10001 }}
       >
-        <div className="border-t border-gray-600 pt-4 mt-4">
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold text-gray-100 border-b border-gray-600 pb-2">
+            Détails du marché
+          </h4>
+
           <div className="grid grid-cols-1 gap-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Fin des engagements:</span>
@@ -202,47 +210,34 @@ export function MarketCard({ market, onQuickBet }: MarketCardProps) {
             market.events.length > 0 &&
             !market.isResolved &&
             !market.isCancelled && (
-              <div className="mt-4 quick-bet-area">
-                <div className="flex items-center justify-between mb-2">
+              <div className="quick-bet-area">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-gray-400 text-sm font-medium">
                     Paris Rapides
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowQuickBet(!showQuickBet)
-                    }}
-                    className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                  >
-                    {showQuickBet ? "Masquer" : "Afficher"}
-                  </button>
                 </div>
 
-                <div
-                  className={`transition-all duration-200 overflow-hidden ${
-                    showQuickBet ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
-                  }`}
-                >
+                <div className="transition-all duration-200 overflow-hidden">
                   <div className="space-y-2">
-                    {market.events.slice(0, 3).map((event) => (
+                    {market.events.slice(0, 4).map((event) => (
                       <button
                         key={event.id}
                         onClick={(e) => handleQuickBet(event.eventId, e)}
                         className="w-full px-3 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-left transition-all duration-200 hover:border-blue-500 group/bet"
                       >
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-200 text-sm font-medium group-hover/bet:text-blue-300">
+                          <span className="text-gray-200 text-sm font-medium group-hover/bet:text-blue-300 truncate">
                             {event.name}
                           </span>
-                          <span className="text-gray-400 text-xs">
+                          <span className="text-gray-400 text-xs ml-2">
                             Parier →
                           </span>
                         </div>
                       </button>
                     ))}
-                    {market.events.length > 3 && (
+                    {market.events.length > 4 && (
                       <p className="text-gray-500 text-xs text-center">
-                        +{market.events.length - 3} autres options
+                        +{market.events.length - 4} autres options
                       </p>
                     )}
                   </div>

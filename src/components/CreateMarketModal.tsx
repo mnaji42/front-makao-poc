@@ -1,17 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import {
   useAccount,
   usePublicClient,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useReadContract,
 } from "wagmi"
 import { uploadMarketMetadata } from "../lib/ipfsUploader"
 import { eventContractInstanceAbi } from "../../docs/abi/eventContractInstanceAbi.js"
-import { parseAbiItem, decodeEventLog, keccak256, toBytes } from "viem"
+import { keccak256, toBytes } from "viem"
 import { useNotifications } from "../contexts/NotificationContext"
 import { TransactionNotification } from "./notifications/TransactionNotification"
 import { TransactionStatusUpdater } from "./notifications/TransactionStatusUpdater"
@@ -24,8 +22,7 @@ interface CreateMarketModalProps {
 }
 
 export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
-  const router = useRouter()
-  const { addNotification, updateNotification, removeNotification } =
+  const { addNotification } =
     useNotifications()
   const [transactionNotificationId, setTransactionNotificationId] = useState<
     string | null

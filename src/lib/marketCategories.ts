@@ -1,4 +1,4 @@
-import { fetchFromSubgraph, fetchMetadataFromIPFS } from './subgraph'
+import { fetchFromSubgraph, fetchMetadataFromIPFS } from "./subgraph"
 
 interface MarketEvent {
   id: string
@@ -199,7 +199,10 @@ async function enrichMarketsWithIPFS(markets: Market[]): Promise<Market[]> {
           const metadata = await fetchMetadataFromIPFS(market.ipfsHash)
           return { ...market, metadata }
         } catch (error) {
-          console.warn(`Erreur lors de la récupération des métadonnées IPFS pour ${market.id}:`, error)
+          console.warn(
+            `Erreur lors de la récupération des métadonnées IPFS pour ${market.id}:`,
+            error
+          )
           return market
         }
       }
@@ -212,69 +215,81 @@ async function enrichMarketsWithIPFS(markets: Market[]): Promise<Market[]> {
 export async function getMarketCategoriesSSR(): Promise<MarketCategories> {
   try {
     const currentTime = Math.floor(Date.now() / 1000).toString()
-    
+
     const [recentData, endingSoonData, highVolumeData] = await Promise.all([
-      fetchFromSubgraph<{ markets: Market[] }>(RECENT_MARKETS_QUERY, { first: 20 }),
-      fetchFromSubgraph<{ markets: Market[] }>(ENDING_SOON_MARKETS_QUERY, { first: 20, currentTime }),
-      fetchFromSubgraph<{ markets: Market[] }>(HIGH_VOLUME_MARKETS_QUERY, { first: 20 })
+      fetchFromSubgraph<{ markets: Market[] }>(RECENT_MARKETS_QUERY, {
+        first: 7,
+      }),
+      fetchFromSubgraph<{ markets: Market[] }>(ENDING_SOON_MARKETS_QUERY, {
+        first: 7,
+        currentTime,
+      }),
+      fetchFromSubgraph<{ markets: Market[] }>(HIGH_VOLUME_MARKETS_QUERY, {
+        first: 7,
+      }),
     ])
 
     // Enrichir avec les métadonnées IPFS
-    const [recentMarkets, endingSoonMarkets, highVolumeMarkets] = await Promise.all([
-      enrichMarketsWithIPFS(recentData.markets),
-      enrichMarketsWithIPFS(endingSoonData.markets),
-      enrichMarketsWithIPFS(highVolumeData.markets)
-    ])
+    const [recentMarkets, endingSoonMarkets, highVolumeMarkets] =
+      await Promise.all([
+        enrichMarketsWithIPFS(recentData.markets),
+        enrichMarketsWithIPFS(endingSoonData.markets),
+        enrichMarketsWithIPFS(highVolumeData.markets),
+      ])
 
     return {
       recentMarkets: {
-        title: 'Marchés Récents',
-        description: 'Les derniers marchés créés sur la plateforme',
+        title: "Marchés Récents",
+        description: "Les derniers marchés créés sur la plateforme",
         markets: recentMarkets,
         isLoading: false,
-        error: null
+        error: null,
       },
       endingSoonMarkets: {
-        title: 'Se Terminent Bientôt',
-        description: 'Marchés dont la période de pari se termine prochainement',
+        title: "Se Terminent Bientôt",
+        description: "Marchés dont la période de pari se termine prochainement",
         markets: endingSoonMarkets,
         isLoading: false,
-        error: null
+        error: null,
       },
       highVolumeMarkets: {
-        title: 'Plus Gros Volumes',
-        description: 'Marchés avec le plus de volume de paris',
+        title: "Plus Gros Volumes",
+        description: "Marchés avec le plus de volume de paris",
         markets: highVolumeMarkets,
         isLoading: false,
-        error: null
-      }
+        error: null,
+      },
     }
   } catch (error) {
-    console.error('Erreur lors de la récupération SSR des catégories de marchés:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
-    
+    console.error(
+      "Erreur lors de la récupération SSR des catégories de marchés:",
+      error
+    )
+    const errorMessage =
+      error instanceof Error ? error.message : "Erreur inconnue"
+
     return {
       recentMarkets: {
-        title: 'Marchés Récents',
-        description: 'Les derniers marchés créés sur la plateforme',
+        title: "Marchés Récents",
+        description: "Les derniers marchés créés sur la plateforme",
         markets: [],
         isLoading: false,
-        error: errorMessage
+        error: errorMessage,
       },
       endingSoonMarkets: {
-        title: 'Se Terminent Bientôt',
-        description: 'Marchés dont la période de pari se termine prochainement',
+        title: "Se Terminent Bientôt",
+        description: "Marchés dont la période de pari se termine prochainement",
         markets: [],
         isLoading: false,
-        error: errorMessage
+        error: errorMessage,
       },
       highVolumeMarkets: {
-        title: 'Plus Gros Volumes',
-        description: 'Marchés avec le plus de volume de paris',
+        title: "Plus Gros Volumes",
+        description: "Marchés avec le plus de volume de paris",
         markets: [],
         isLoading: false,
-        error: errorMessage
-      }
+        error: errorMessage,
+      },
     }
   }
 }

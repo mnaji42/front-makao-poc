@@ -249,7 +249,7 @@ export function useMarketCategories(): UseMarketCategoriesReturn {
     try {
       const data = await fetchFromSubgraph<{ markets: Market[] }>(
         RECENT_MARKETS_QUERY,
-        { first: 20 }
+        { first: 7 }
       )
       const enrichedMarkets = await enrichMarketsWithIPFS(data.markets)
       setRecentMarkets(prev => ({
@@ -273,7 +273,7 @@ export function useMarketCategories(): UseMarketCategoriesReturn {
       const currentTime = Math.floor(Date.now() / 1000).toString()
       const data = await fetchFromSubgraph<{ markets: Market[] }>(
         ENDING_SOON_MARKETS_QUERY,
-        { first: 20, currentTime }
+        { first: 7, currentTime }
       )
       const enrichedMarkets = await enrichMarketsWithIPFS(data.markets)
       setEndingSoonMarkets(prev => ({
@@ -296,7 +296,7 @@ export function useMarketCategories(): UseMarketCategoriesReturn {
     try {
       const data = await fetchFromSubgraph<{ markets: Market[] }>(
         HIGH_VOLUME_MARKETS_QUERY,
-        { first: 20 }
+        { first: 7 }
       )
       const enrichedMarkets = await enrichMarketsWithIPFS(data.markets)
       setHighVolumeMarkets(prev => ({
