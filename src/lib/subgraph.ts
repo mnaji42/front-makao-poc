@@ -168,7 +168,7 @@ export async function getMarket(marketId: string): Promise<Market | null> {
             name: ipfsMetadata.name || "",
             description: ipfsMetadata.description || "",
             image: ipfsMetadata.image || "",
-            events: ipfsMetadata.events || [],
+            events: ipfsMetadata.properties?.events || [],
           },
         }
       } catch (error) {
