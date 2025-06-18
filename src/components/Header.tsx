@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { metaMask } from "wagmi/connectors"
 import { useState, useEffect } from "react"
@@ -20,31 +21,33 @@ export default function Header() {
 
   return (
     <header className="flex justify-between items-center mb-12">
-      <div className="flex items-center space-x-4">
-        <div className="w-10 h-10 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg flex items-center justify-center">
-          <svg
-            className="w-6 h-6 text-gray-200"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-            />
-          </svg>
+      <Link href="/">
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-gray-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-100">
+              Makao Predictions
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Live Market Predictions for Streamers
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">
-            Makao Predictions
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Live Market Predictions for Streamers
-          </p>
-        </div>
-      </div>
+      </Link>
 
       {!isHydrated ? (
         <div className="flex gap-3">
