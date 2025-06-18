@@ -13,7 +13,7 @@ interface MarketsListProps {
 export function MarketsList({ initialData }: MarketsListProps) {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const { addNotification } = useNotifications()
-  
+
   // Utiliser les données initiales passées en props
   const recentMarkets = initialData.recentMarkets
   const endingSoonMarkets = initialData.endingSoonMarkets
@@ -51,29 +51,6 @@ export function MarketsList({ initialData }: MarketsListProps) {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => window.location.reload()}
-                disabled={isAnyLoading}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg text-gray-100 transition-colors disabled:opacity-50 flex items-center"
-                title="Actualiser toutes les catégories"
-              >
-                <svg
-                  className={`w-4 h-4 mr-2 ${
-                    isAnyLoading ? "animate-spin" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                Actualiser
-              </button>
               <button
                 onClick={() => setShowCreateForm(true)}
                 className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 border border-green-500 rounded-lg text-gray-100 font-medium transition-all duration-300 transform hover:scale-105"
