@@ -15,8 +15,10 @@ export async function fetchFromSubgraph<T>(
 
   const response = await fetch(SUBGRAPH_URL, {
     method: "POST",
+    mode: "cors",
     headers: {
       "Content-Type": "application/json",
+      "Accept": "application/json",
     },
     body: JSON.stringify({
       query,

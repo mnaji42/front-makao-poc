@@ -35,6 +35,7 @@ export async function uploadToIPFS(file: File): Promise<string> {
   const formData = new FormData()
   formData.append("file", file)
 
+  console.log(FILEBASE_RPC_URL)
   const response = await fetch(`${FILEBASE_RPC_URL}/api/v0/add`, {
     method: "POST",
     headers: {
