@@ -1,6 +1,7 @@
-"use client"
+'use client';
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   useAccount,
   useConnect,
@@ -21,6 +22,7 @@ import { MarketsList } from "@/components/MarketsList"
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS as `0x${string}`
 
 export default function Home() {
+  const router = useRouter()
   const [markets, setMarkets] = useState<string[]>([])
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -380,11 +382,52 @@ export default function Home() {
     setShowCreateForm(false)
   }
 
-  // Reset form when transaction is confirmed and reload markets
+  // Reset form when transaction is confirmed and redirect to market page
   useEffect(() => {
-    if (isConfirmed) {
-      resetForm()
-      alert("Marché créé avec succès!")
+    if (isConfirmed && hash) {
+      const handleMarketCreated = async () => {
+        try {
+          // Récupérer la transaction pour obtenir les logs
+          const receipt = await publicClient?.getTransactionReceipt({ hash })
+          
+          if (receipt && receipt.logs) {
+            // Chercher l'événement InstanceCreated dans les logs
+            for (const log of receipt.logs) {
+              try {
+                const decoded = decodeEventLog({
+                  abi: [parseAbiItem("event InstanceCreated(bytes32 indexed salt, address indexed instance, address indexed creator)")],
+                  data: log.data,
+                  topics: log.topics,
+                })
+                
+                if (decoded.eventName === 'InstanceCreated') {
+                   const marketId = hash
+                   console.log('Marché créé avec ID:', marketId)
+                   
+                   // Rediriger vers la page du marché
+                   router.push(`/market/${marketId}`)
+                   resetForm()
+                   return
+                 }
+              } catch (error) {
+                // Ignorer les logs qui ne correspondent pas à notre événement
+                continue
+              }
+            }
+          }
+          
+          // Fallback: si on ne trouve pas l'événement, utiliser le hash de transaction
+          console.log('Redirection avec hash de transaction:', hash)
+          router.push(`/market/${hash}`)
+          resetForm()
+        } catch (error) {
+          console.error('Erreur lors de la redirection:', error)
+          alert("Marché créé avec succès!")
+          resetForm()
+        }
+      }
+      
+      handleMarketCreated()
 
       // Recharger la liste des marchés après création
       const reloadMarkets = async () => {
