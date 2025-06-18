@@ -144,14 +144,14 @@ export function MarketCategorySection({
   }
 
   return (
-    <div className="mb-12">
+    <div className="mb-16">
       {/* En-tête de la catégorie */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">
+          <h2 className="text-3xl font-bold text-gray-100 mb-3">
             {category.title}
           </h2>
-          <p className="text-gray-400 text-sm">{category.description}</p>
+          <p className="text-gray-400 text-base">{category.description}</p>
         </div>
         <div className="flex items-center space-x-3">
           {category.markets.length > 0 && (

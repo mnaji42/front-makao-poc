@@ -14,7 +14,10 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,120,120,0.03),transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 flex items-center" style={{minHeight: 'calc(100vh - 16rem)'}}>
+      <div
+        className="relative z-10 container mx-auto px-4 py-8 flex items-center"
+        style={{ minHeight: "calc(100vh - 16rem)" }}
+      >
         {/* Main Content */}
         <div className="grid lg:grid-cols-2 gap-16 items-center w-full max-w-7xl mx-auto">
           {/* Left Side - Hero */}

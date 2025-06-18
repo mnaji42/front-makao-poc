@@ -40,25 +40,39 @@ export function MarketsList({ initialData }: MarketsListProps) {
     <>
       <div className="space-y-8">
         {/* En-tête principal */}
-        <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
-          <div className="flex items-center justify-between">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-100 mb-2">
+              <h1 className="text-4xl font-bold text-gray-100 mb-3">
                 Marchés de Prédiction
               </h1>
-              <p className="text-gray-400">
+              <p className="text-lg text-gray-400">
                 Découvrez et participez aux marchés de prédiction décentralisés
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 border border-green-500 rounded-lg text-gray-100 font-medium transition-all duration-300 transform hover:scale-105"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
+                <svg
+                  className="w-5 h-5 mr-2 inline"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
                 Créer un Marché
               </button>
             </div>
           </div>
+          <div className="h-px bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700"></div>
         </div>
 
         {/* État global vide */}
@@ -96,7 +110,7 @@ export function MarketsList({ initialData }: MarketsListProps) {
 
         {/* Catégories de marchés */}
         {hasAnyMarkets && (
-          <div className="space-y-12">
+          <div className="space-y-16">
             {/* Marchés se terminant bientôt */}
             <MarketCategorySection
               category={endingSoonMarkets}
