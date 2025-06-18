@@ -41,9 +41,9 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
     resolutionDeadline: "",
     creatorFee: "",
     predictionCount: "2",
-    events: [{ id: 0, name: "", description: "" }],
+    events: [{ id: 0, name: "", description: "" }, { id: 0, name: "", description: "" }],
   })
-  const [currentSalt, setCurrentSalt] = useState<string | null>(null)
+
   const [predictedMarketAddress, setPredictedMarketAddress] = useState<
     string | null
   >(null)
@@ -106,10 +106,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
       return
     }
 
-    console.log("Données du formulaire:", createFormData)
-    console.log("Adresse du token:", tokenAddress)
-    console.log("Adresse connectée:", address)
-    console.log("Est connecté:", isConnected)
 
     try {
       const ipfsHash = await uploadMarketMetadata(
@@ -118,7 +114,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         createFormData.imageFile,
         createFormData.events
       )
-      console.log("IPFS Hash:", ipfsHash)
 
       if (!ipfsHash) {
         alert("Échec du téléchargement des métadonnées IPFS.")
@@ -131,7 +126,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
       )
 
       // 1. Prédire l'adresse du marché avec predictInstance
-      console.log("Prédiction de l'adresse du marché...")
       const predictedAddress = await publicClient.readContract({
         address: FACTORY_ADDRESS,
         abi: eventContractInstanceAbi,
@@ -139,7 +133,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         args: [salt],
       })
 
-      console.log("Adresse prédite:", predictedAddress)
       setPredictedMarketAddress((predictedAddress as string).toLowerCase())
 
       // Convertir les dates en timestamps
@@ -155,8 +148,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         Math.floor(parseFloat(createFormData.creatorFee) * 100)
       )
 
-      console.log("ipfs-hash: ", ipfsHash)
-      console.log("salt généré:", salt)
 
       const args = [
         salt, // _salt (bytes32)
@@ -168,7 +159,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         ipfsHash, // Utiliser le hash IPFS réel
       ]
 
-      console.log("Arguments pour createInstance:", args)
 
       // 2. Créer l'instance sur la blockchain
       writeContract({
@@ -178,7 +168,6 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
         args,
       })
 
-      console.log("Transaction de création envoyée")
     } catch (error) {
       console.error("Erreur lors de la création du marché:", error)
       const errorNotificationId = addNotification({
@@ -254,7 +243,7 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
       )}
 
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-100">
               Créer un Nouveau Marché
@@ -279,211 +268,228 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
             </button>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Titre du marché *
-              </label>
-              <input
-                type="text"
-                value={createFormData.title}
-                onChange={(e) =>
-                  setCreateFormData((prev) => ({
-                    ...prev,
-                    title: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                placeholder="Ex: Bitcoin atteindra-t-il 100k$ ?"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Description du marché *
-              </label>
-              <textarea
-                value={createFormData.marketDescription}
-                onChange={(e) =>
-                  setCreateFormData((prev) => ({
-                    ...prev,
-                    marketDescription: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                placeholder="Décrivez le marché en détail..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Token de mise *
-              </label>
-
-              {/* Radio buttons pour choisir entre preset et custom */}
-              <div className="flex gap-4 mb-3">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="tokenType"
-                    value="preset"
-                    checked={createFormData.tokenType === "preset"}
-                    onChange={(e) =>
-                      setCreateFormData((prev) => ({
-                        ...prev,
-                        tokenType: e.target.value,
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-300">
-                    Tokens prédéfinis
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Colonne gauche - Informations de base */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-200 border-b border-gray-600 pb-2">
+                Informations de base
+              </h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Titre du marché *
                 </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="tokenType"
-                    value="custom"
-                    checked={createFormData.tokenType === "custom"}
-                    onChange={(e) =>
-                      setCreateFormData((prev) => ({
-                        ...prev,
-                        tokenType: e.target.value,
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-300">
-                    Adresse personnalisée
-                  </span>
-                </label>
-              </div>
-
-              {createFormData.tokenType === "preset" ? (
-                <select
-                  value={createFormData.stakeToken}
+                <input
+                  type="text"
+                  value={createFormData.title}
                   onChange={(e) =>
                     setCreateFormData((prev) => ({
                       ...prev,
-                      stakeToken: e.target.value,
+                      title: e.target.value,
                     }))
                   }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                >
-                  <option value={process.env.NEXT_PUBLIC_WETH_ADDRESS}>
-                    WETH Sepolia
-                  </option>
-                  <option value={process.env.NEXT_PUBLIC_USDT_ADDRESS}>
-                    USDT
-                  </option>
-                  <option value={process.env.NEXT_PUBLIC_USDC_ADDRESS}>
-                    USDC
-                  </option>
-                  <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>
-                    DAI
-                  </option>
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={createFormData.customTokenAddress}
+                  placeholder="Ex: Bitcoin atteindra-t-il 100k$ ?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description du marché *
+                </label>
+                <textarea
+                  value={createFormData.marketDescription}
                   onChange={(e) =>
                     setCreateFormData((prev) => ({
                       ...prev,
-                      customTokenAddress: e.target.value,
+                      marketDescription: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 font-mono text-sm"
-                  placeholder="0x... (Adresse du contrat ERC-20)"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  placeholder="Décrivez le marché en détail..."
+                  rows={3}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        imageFile: e.target.files![0],
+                      }))
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+            </div>
+
+            {/* Colonne droite - Configuration */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-200 border-b border-gray-600 pb-2">
+                Configuration
+              </h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Token de mise *
+                </label>
+                <div className="flex gap-4 mb-2">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="tokenType"
+                      value="preset"
+                      checked={createFormData.tokenType === "preset"}
+                      onChange={(e) =>
+                        setCreateFormData((prev) => ({
+                          ...prev,
+                          tokenType: e.target.value,
+                        }))
+                      }
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-gray-300">Prédéfinis</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="tokenType"
+                      value="custom"
+                      checked={createFormData.tokenType === "custom"}
+                      onChange={(e) =>
+                        setCreateFormData((prev) => ({
+                          ...prev,
+                          tokenType: e.target.value,
+                        }))
+                      }
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-gray-300">Personnalisé</span>
+                  </label>
+                </div>
+
+                {createFormData.tokenType === "preset" ? (
+                  <select
+                    value={createFormData.stakeToken}
+                    onChange={(e) =>
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        stakeToken: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  >
+                    <option value={process.env.NEXT_PUBLIC_WETH_ADDRESS}>
+                      WETH Sepolia
+                    </option>
+                    <option value={process.env.NEXT_PUBLIC_USDT_ADDRESS}>
+                      USDT
+                    </option>
+                    <option value={process.env.NEXT_PUBLIC_USDC_ADDRESS}>
+                      USDC
+                    </option>
+                    <option value={process.env.NEXT_PUBLIC_DAI_ADDRESS}>
+                      DAI
+                    </option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={createFormData.customTokenAddress}
+                    onChange={(e) =>
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        customTokenAddress: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                    placeholder="0x... (Adresse du contrat ERC-20)"
+                  />
               )}
 
-              <p className="text-xs text-gray-500 mt-1">
-                {createFormData.tokenType === "preset"
-                  ? "Tokens de test disponibles sur Sepolia avec des faucets"
-                  : "Entrez l'adresse d'un contrat ERC-20 valide sur Sepolia"}
-              </p>
-            </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {createFormData.tokenType === "preset"
+                    ? "Tokens de test disponibles sur Sepolia"
+                    : "Entrez l'adresse d'un contrat ERC-20 valide"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Date limite d'engagement *
-              </label>
-              <input
-                type="datetime-local"
-                value={createFormData.engagementDeadline}
-                onChange={(e) =>
-                  setCreateFormData((prev) => ({
-                    ...prev,
-                    engagementDeadline: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Date limite d'engagement *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={createFormData.engagementDeadline}
+                    onChange={(e) =>
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        engagementDeadline: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Date limite de résolution *
-              </label>
-              <input
-                type="datetime-local"
-                value={createFormData.resolutionDeadline}
-                onChange={(e) =>
-                  setCreateFormData((prev) => ({
-                    ...prev,
-                    resolutionDeadline: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Date limite de résolution *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={createFormData.resolutionDeadline}
+                    onChange={(e) =>
+                      setCreateFormData((prev) => ({
+                        ...prev,
+                        resolutionDeadline: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Frais du créateur (wei)
-              </label>
-              <input
-                type="number"
-                value={createFormData.creatorFee}
-                onChange={(e) =>
-                  setCreateFormData((prev) => ({
-                    ...prev,
-                    creatorFee: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Image
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Frais du créateur (%)
+                </label>
+                <input
+                  type="number"
+                  value={createFormData.creatorFee}
+                  onChange={(e) =>
                     setCreateFormData((prev) => ({
                       ...prev,
-                      imageFile: e.target.files![0],
+                      creatorFee: e.target.value,
                     }))
                   }
-                }}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                  placeholder="0"
+                  step="0.1"
+                  min="0"
+                  max="10"
+                />
+              </div>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Événements de prédiction *
-              </label>
+          {/* Section des événements - pleine largeur */}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-200 border-b border-gray-600 pb-2 mb-4">
+               Événements de prédiction
+             </h3>
+            <div className="space-y-3">
               {createFormData.events.map((event, index) => (
-                <div key={index} className="flex space-x-2 mb-2">
+                <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-gray-700/30 rounded-lg">
                   <input
                     type="text"
                     value={event.name}
@@ -495,40 +501,42 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
                         events: newEvents,
                       }))
                     }}
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
                     placeholder={`Titre de l'événement ${index + 1}`}
                   />
-                  <input
-                    type="text"
-                    value={event.description}
-                    onChange={(e) => {
-                      const newEvents = [...createFormData.events]
-                      newEvents[index].description = e.target.value
-                      setCreateFormData((prev) => ({
-                        ...prev,
-                        events: newEvents,
-                      }))
-                    }}
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
-                    placeholder={`Description de l'événement ${index + 1}`}
-                  />
-                  {createFormData.events.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newEvents = createFormData.events.filter(
-                          (_, i) => i !== index
-                        )
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={event.description}
+                      onChange={(e) => {
+                        const newEvents = [...createFormData.events]
+                        newEvents[index].description = e.target.value
                         setCreateFormData((prev) => ({
                           ...prev,
                           events: newEvents,
                         }))
                       }}
-                      className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-                    >
-                      Supprimer
-                    </button>
-                  )}
+                      className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
+                      placeholder={`Description de l'événement ${index + 1}`}
+                    />
+                    {createFormData.events.length > 2 && (
+                       <button
+                         type="button"
+                         onClick={() => {
+                           const newEvents = createFormData.events.filter(
+                             (_, i) => i !== index
+                           )
+                           setCreateFormData((prev) => ({
+                             ...prev,
+                             events: newEvents,
+                           }))
+                         }}
+                         className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                       >
+                         ✕
+                       </button>
+                     )}
+                  </div>
                 </div>
               ))}
               <button
@@ -542,9 +550,9 @@ export function CreateMarketModal({ isOpen, onClose }: CreateMarketModalProps) {
                     ],
                   }))
                 }
-                className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm"
               >
-                Ajouter un événement
+                + Ajouter un événement
               </button>
             </div>
           </div>

@@ -14,21 +14,21 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,120,120,0.03),transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
+      <div className="relative z-10 container mx-auto px-4 py-8 flex items-center" style={{minHeight: 'calc(100vh - 16rem)'}}>
         {/* Main Content */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-16 items-center w-full max-w-7xl mx-auto">
           {/* Left Side - Hero */}
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-700/40 border border-gray-600 text-gray-400 text-sm">
+          <div className="space-y-10 text-center lg:text-left">
+            <div className="space-y-6">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gray-700/40 border border-gray-600 text-gray-400 text-sm font-medium">
                 <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
                 Live on Sepolia Testnet
               </div>
-              <h2 className="text-5xl font-bold leading-tight text-gray-100">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-100">
                 Prédictions de marché
-                <span className="block text-gray-400">en temps réel</span>
-              </h2>
-              <p className="text-xl text-gray-400 leading-relaxed">
+                <span className="block text-gray-400 mt-2">en temps réel</span>
+              </h1>
+              <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Plateforme décentralisée permettant aux streamers et leur
                 audience de créer et participer à des prédictions de marché en
                 direct.
@@ -36,10 +36,10 @@ export default function Home() {
             </div>
 
             {/* Call to Action */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link
                 href="/market"
-                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 <svg
                   className="w-5 h-5 mr-2"
@@ -58,7 +58,7 @@ export default function Home() {
               </Link>
 
               <button
-                className="inline-flex items-center justify-center px-8 py-4 bg-gray-700/50 hover:bg-gray-600/50 text-gray-200 font-semibold rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
+                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 border border-green-500 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
                 onClick={() => setShowCreateForm(true)}
               >
                 <svg
@@ -80,7 +80,15 @@ export default function Home() {
           </div>
 
           {/* Right Side - Features */}
-          <div className="space-y-6">
+          <div className="space-y-8">
+            <div className="text-center lg:text-left mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-4">
+                Fonctionnalités clés
+              </h2>
+              <p className="text-gray-400">
+                Découvrez ce qui rend notre plateforme unique
+              </p>
+            </div>
             <div className="grid gap-6">
               <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-gray-500 transition-colors">
                 <div className="flex items-start space-x-4">
