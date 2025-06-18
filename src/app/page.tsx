@@ -1,6 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 
+import { CreateMarketModal } from "../components/CreateMarketModal"
+
 export default function Home() {
+  const [showCreateForm, setShowCreateForm] = useState(false)
   return (
     <div className="bg-gray-900 text-gray-100 relative overflow-hidden">
       {/* Subtle background */}
@@ -51,7 +57,10 @@ export default function Home() {
                 Voir tous les marchés
               </Link>
 
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-gray-700/50 hover:bg-gray-600/50 text-gray-200 font-semibold rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500">
+              <button
+                className="inline-flex items-center justify-center px-8 py-4 bg-gray-700/50 hover:bg-gray-600/50 text-gray-200 font-semibold rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
+                onClick={() => setShowCreateForm(true)}
+              >
                 <svg
                   className="w-5 h-5 mr-2"
                   fill="none"
@@ -169,6 +178,10 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <CreateMarketModal
+        isOpen={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+      />
     </div>
   )
 }
